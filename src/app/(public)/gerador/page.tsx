@@ -22,6 +22,7 @@ type InputsSchema = z.infer<typeof inputs>;
 export default function Gerador(): JSX.Element {
   const { register, handleSubmit } = useForm<InputsSchema>();
   const [output, setOutput] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const API_KEY: string = 'AIzaSyAhn4Wz89_Kqto2jHixKvECbjfiUa9y1ic';
 
@@ -47,6 +48,9 @@ export default function Gerador(): JSX.Element {
       ],
     });
 
+    setLoading(true); // Set loading state to true
+    setOutput('Gerando Resposta...'); 
+
     console.log("loading-result");
     const result = await model.generateContentStream({ contents });
 
@@ -58,24 +62,28 @@ export default function Gerador(): JSX.Element {
       buffer += text; // Append new text to the buffer
       setOutput(md.render(buffer)); // Update output with the rendered content
     }
+
+    setLoading(false); 
   };
 
   return (
-    <body>
+    <body className="font-sans antialiased text-gray-900 m-0 p-0 leading-relaxed">
       <main>
         <header>
-          <div><span>👩‍🏫</span></div>
-          <h1>Gerador de Planos de Aula</h1>
+          <div className='text-5xl'><span className='inline-block w-8 h-8 align-bottom mr-2'>👩‍🏫</span></div>
+          <h1 className='mb-4'>Gerador de Planos de Aula</h1>
         </header>
         <form onSubmit={handleSubmit(handleSubmitForm)}>
-          <div>
+          <div className='my-6 w-full flex gap-2'>
             <label>
               <input {...register('text')} placeholder="Digite suas instruções aqui" type="text" className='text-black' />
             </label>
             <button type="submit">Ir</button>
           </div>
         </form>
-        <p>(Resultados vão aparecer aqui)</p>
+        {!loading && !output && (
+          <p>(Resultados vão aparecer aqui)</p>
+        )}
         <div className="output" dangerouslySetInnerHTML={{ __html: output }} />
       </main>
     </body>
