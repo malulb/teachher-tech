@@ -10,14 +10,20 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.17.0",
+    "@react-pdf/renderer": "^3.4.4",
+    "html-to-text": "^9.0.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "markdown-it": "^14.1.0",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.52.2",
+    "react-to-print": "^2.15.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/html-to-text": "^9.0.4",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
     "@types/react": "^18",
