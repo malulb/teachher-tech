@@ -7,6 +7,7 @@ import { z } from 'zod';
 import React, { useState, useEffect } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import MyDocument  from './documento';
+import MultiSelectCheckbox  from './dropdown';
 
 interface ContentPart {
   text: string;
@@ -25,12 +26,12 @@ interface TopicsData {
 
 
 const inputs = z.object({ 
-  text: z.string().min(1), 
+  text: z.string().optional(), 
   grade: z.string(),
   classDuration: z.string(),
   numberOfClasses: z.string(),
   area: z.string().optional(), // Make optional if it's not always used
-  topic: z.string().optional(),
+  topics: z.array(z.string()).optional(),
   intersectionality: z.boolean(),
   otherSubject: z.string().optional(),
   intersectionalityDetails: z.string().optional(),
@@ -46,7 +47,8 @@ export default function Gerador(): JSX.Element {
   const [selectedGrade, setSelectedGrade] = useState('1ª série');
   const [showForm, setShowForm] = useState(true);
   const [selectedArea, setSelectedArea] = useState('Cultura Digital');
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] =  useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [topicsData, setTopicsData] = useState<TopicsData>({});
 
 
@@ -68,19 +70,30 @@ export default function Gerador(): JSX.Element {
   }, []);
 
   useEffect(() => {
+    setValue('grade', selectedGrade);  // <-- Ensure grade is set when component loads
+    setValue('area', selectedArea);
     if (selectedGrade && selectedArea && topicsData[selectedArea]) {
-      setTopics(topicsData[selectedArea][selectedGrade] || []);
+      const availableTopics = topicsData[selectedArea][selectedGrade] || [];
+      setTopics(availableTopics);
+      //setSelectedTopics([]); // Reset selected topics when grade or area changes
     }
   }, [selectedGrade, selectedArea, topicsData]);
 
   const handleSubmitForm = async (data: InputsSchema) => {
+    if (selectedTopics.length === 0) {
+      setOutput('Por favor, selecione pelo menos um tópico.');
+      return;
+    }
     setLoading(true)
-    let prompt = `Por favor, gere um plano de aula focando no tópico '${data.topic}' para a série ${data.grade}. O assunto será abordado em ${data.numberOfClasses} aulas com duração de ${data.classDuration} minutos cada.`;
+    let prompt = `Por favor, gere um plano de aula focando nos tópicos '${selectedTopics.join(', ')}' para a série ${data.grade}. O assunto será abordado em ${data.numberOfClasses} aulas com duração de ${data.classDuration} minutos cada.`;
     if (data.intersectionality) {
       prompt += ` Esta aula deve incluir elementos de interseccionalidade com ${data.otherSubject}. Detalhes adicionais: ${data.intersectionalityDetails}.`;
     }
     
-    prompt += ` Comentários adicionais: ${data.text}.`;
+    if (data.text && data.text.trim() !== '') {
+      prompt += ` Comentários adicionais: ${data.text}.`;
+    }
+
     const contents: Content[] = [
       {
         role: 'user',
@@ -90,7 +103,7 @@ export default function Gerador(): JSX.Element {
 
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", // or gemini-1.5-pro
+      model: "gemini-1.5-flash", // or gemini-1.5-flash
       systemInstruction: 
       "Você é um assistente de professor de ensino fundamental que gera planos de aula sobre computação e tecnologia. Suas respostas devem ser todas em português",
       safetySettings: [
@@ -192,19 +205,14 @@ export default function Gerador(): JSX.Element {
             </div>
           </div>
           {topics.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tópico</label>
-              <select
-                {...register('topic')}
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                {topics.map((topic, index) => (
-                  <option key={index} value={topic}>
-                    {topic}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tópicos</label>
+              <MultiSelectCheckbox
+                options={topics}
+                selectedOptions={selectedTopics}
+                onChange={setSelectedTopics}
+              />
+            </>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -273,7 +281,7 @@ export default function Gerador(): JSX.Element {
             </>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Comentários adicionais:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Comentários adicionais (opcional):</label>
               <input {...register('text')}  type="text"  className='w-full'/>
           </div>
           <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
