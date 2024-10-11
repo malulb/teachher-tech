@@ -105,7 +105,7 @@ export default function Gerador(): JSX.Element {
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash", // or gemini-1.5-flash
       systemInstruction: 
-      "Você é um assistente de professor de ensino fundamental que gera planos de aula sobre computação e tecnologia. Suas respostas devem ser todas em português",
+      "Você é um assistente de professor de ensino fundamental que gera planos de aula sobre computação e tecnologia para alunos de escola pública com poucos recursos. Suas respostas devem ser todas em português",
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
