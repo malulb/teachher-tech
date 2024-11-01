@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import MyDocument  from './documento';
 import MultiSelectCheckbox  from './dropdown';
+import MultiSelectSubjects  from './multiselect';
 
 interface ContentPart {
   text: string;
@@ -33,7 +34,7 @@ const inputs = z.object({
   area: z.string().optional(), // Make optional if it's not always used
   topics: z.array(z.string()).optional(),
   intersectionality: z.boolean(),
-  otherSubject: z.string().optional(),
+  otherSubjects: z.array(z.string()).optional(),
   intersectionalityDetails: z.string().optional(),
 });
 
@@ -54,9 +55,12 @@ export default function Gerador(): JSX.Element {
 
   const classDuration = watch('classDuration', '50'); // Default to 50 minutes
   const numberOfClasses = watch('numberOfClasses', '4');
-  const intersectionality = watch('intersectionality', false);
+  const otherSubjects = watch("otherSubjects") || []; 
 
-  const API_KEY: string = 'AIzaSyAhn4Wz89_Kqto2jHixKvECbjfiUa9y1ic';
+  const API_KEY: string = process.env.NEXT_PUBLIC_API_KEY as string;
+
+  //console.log("API Key:", process.env.REACT_APP_API_KEY);
+
 
   useEffect(() => {
     // Fetch the JSON data when the component mounts
@@ -86,10 +90,10 @@ export default function Gerador(): JSX.Element {
     }
     setLoading(true)
     let prompt = `Por favor, gere um plano de aula focando nos tópicos '${selectedTopics.join(', ')}' para a série ${data.grade}. O assunto será abordado em ${data.numberOfClasses} aulas com duração de ${data.classDuration} minutos cada.`;
-    if (data.intersectionality) {
-      prompt += ` Esta aula deve incluir elementos de interseccionalidade com ${data.otherSubject}. Detalhes adicionais: ${data.intersectionalityDetails}.`;
+    if (data.otherSubjects && data.otherSubjects.length > 0) {
+      const subjects = data.otherSubjects.join(", ");
+      prompt += ` Esta aula deve incluir elementos de interseccionalidade com ${subjects}. Detalhes adicionais: ${data.intersectionalityDetails}.`;
     }
-    
     if (data.text && data.text.trim() !== '') {
       prompt += ` Comentários adicionais: ${data.text}.`;
     }
@@ -167,6 +171,27 @@ export default function Gerador(): JSX.Element {
       {showForm ? (
         <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Interdisciplinaridade</label>
+            <div className="mt-4">
+            <MultiSelectSubjects
+      register={register}
+      setValue={setValue}
+      defaultValue={[]}
+    />
+            </div>
+
+            {otherSubjects.length > 0 && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Detalhes da interdisciplinaridade</label>
+                <input
+                  {...register('intersectionalityDetails', { required: true })}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Descreva que assunto específico deseja abordar e como você gostaria de integrar as duas disciplinas"
+                />
+              </div>
+            )}
+          </div>    
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Série</label>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {['1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª'].map((serie) => (
@@ -206,7 +231,7 @@ export default function Gerador(): JSX.Element {
           </div>
           {topics.length > 0 && (
             <>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tópicos</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Habilidade</label>
               <MultiSelectCheckbox
                 options={topics}
                 selectedOptions={selectedTopics}
@@ -240,49 +265,14 @@ export default function Gerador(): JSX.Element {
               className="w-full"
             />
           </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="intersectionality"
-              {...register('intersectionality')}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-            <label htmlFor="intersectionality" className="ml-2 block text-sm text-gray-900">
-              Incluir interseccionalidade com outras disciplinas
-            </label>
-          </div>
-
-          {intersectionality && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Disciplina relacionada</label>
-                <select
-                  {...register('otherSubject')}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="">Selecione uma disciplina</option>
-                  <option value="Arte">Arte</option>
-                  <option value="História">História</option>
-                  <option value="Geografia">Geografia</option>
-                  <option value="Matemática">Matemática</option>
-                  <option value="Ciências">Ciências</option>
-                  <option value="Língua Portuguesa">Língua Portuguesa</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Detalhes da interseccionalidade</label>
-                <input
-                  {...register('intersectionalityDetails')}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  //rows={3}
-                  placeholder="Descreva que assunto especifico deseja abordar e como você gostaria de integrar as duas disciplinas"
-                />
-              </div>
-            </>
-          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Comentários adicionais (opcional):</label>
-              <input {...register('text')}  type="text"  className='w-full'/>
+            <textarea
+              {...register('text')}
+              className="w-full p-2 border border-gray-300 rounded resize-y"
+              placeholder="Aqui você pode incluir qualquer especificidade em relação à sua aula. Ex: incluir alguma atividade em grupo, quantos alunos tem na sala, materiais que você deseja que sejam usados na aula ou materiais que não estão disponíveis."
+              rows={3}
+            ></textarea>
           </div>
           <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             Gerar Plano

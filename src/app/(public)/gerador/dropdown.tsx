@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckSquare, Square } from 'lucide-react';
 
 interface MultiSelectCheckboxProps {
   options: string[];
@@ -17,15 +18,17 @@ const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({ options, sele
   return (
     <div className="space-y-2 max-h-60 overflow-y-auto">
       {options.map((option) => (
-        <div key={option} className="flex items-center">
-          <input
-            type="checkbox"
-            id={option}
-            checked={selectedOptions.includes(option)}
-            onChange={() => handleCheckboxChange(option)}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-          />
-          <label htmlFor={option} className="ml-2 block text-sm text-gray-900">
+        <div 
+          key={option} 
+          className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+          onClick={() => handleCheckboxChange(option)}
+        >
+          {selectedOptions.includes(option) ? (
+            <CheckSquare className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+          ) : (
+            <Square className="h-5 w-5 text-gray-400 flex-shrink-0" />
+          )}
+          <label className="text-sm text-gray-700 cursor-pointer">
             {option}
           </label>
         </div>
