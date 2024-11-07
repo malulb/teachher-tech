@@ -45,7 +45,7 @@ export default function Gerador(): JSX.Element {
   const { register, handleSubmit, watch, setValue, reset} = useForm<InputsSchema>();
   const [output, setOutput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedGrade, setSelectedGrade] = useState('1ª série');
+  const [selectedGrade, setSelectedGrade] = useState('1° série');
   const [showForm, setShowForm] = useState(true);
   const [selectedArea, setSelectedArea] = useState('Cultura Digital');
   const [topics, setTopics] =  useState<string[]>([]);
@@ -192,9 +192,9 @@ export default function Gerador(): JSX.Element {
             )}
           </div>    
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Série</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Ano</label>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {['1ª', '2ª', '3ª', '4ª', '5ª', '6ª', '7ª', '8ª', '9ª'].map((serie) => (
+              {['1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', '9°'].map((serie) => (
                 <button
                   key={serie}
                   type="button"
@@ -205,7 +205,7 @@ export default function Gerador(): JSX.Element {
                   }`}
                   onClick={() => handleGradeSelect(`${serie} série`)}
                 >
-                  {serie}ª
+                  {serie}
                 </button>
               ))}
             </div>
